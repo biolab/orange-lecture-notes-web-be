@@ -36,24 +36,38 @@ def data_to_csv_str(data: list):
 
 @app.route("/user/create", methods=["POST"])
 def user_records():
-    email = request.args.get("email")
+    content = request.get_json(force=True)
+    params = content["params"]
 
-    if email is not None:
-        email = email.lower()
+    email = params.get('email')
+    url = params.get('url')
 
-        existing_user = User.query.filter(
-            User.email == email
-        ).first()
-        if existing_user:
-            return make_response(f"{email} already exists!")
+    if not email:
+        return make_response("Email is required!", 400)
+
+    email = email.lower()
+
+    existing_user = User.query.filter(
+        User.email == email
+    ).first()
+
+    access_token = ""
+
+    if existing_user:
+        access_token = existing_user.access_token
+    else:
+        access_token = uuid.uuid4().hex,
 
         new_user = User(
             email=email,
-            access_token=uuid.uuid4().hex,
+            access_token=access_token,
         )
-        db.session.add(new_user)  # Adds new User record to database
-        db.session.commit()  # Commits all changes
-        return make_response(f"User {email} created!")
+        db.session.add(new_user)
+        db.session.commit()
+
+    # Send email with access token
+
+    return make_response(f"User {email} created!")
 
 
 @app.route('/event', methods=['POST'])
@@ -80,19 +94,7 @@ def post_event():
     return make_response(f"Ok")
 
 
-def create_event_response(event: Event):
-    return {
-        "event_id": event.event_id,
-        "event_name": event.event_name,
-        "book_id": event.book_id,
-        "user_id": event.user_id,
-        "created": event.created,
-        **json.loads(event.properties),
-    }
-
 # Authentication decorator
-
-
 def admin_protected_route(f):
     @wraps(f)
     def decorator(*args, **kwargs):
@@ -112,9 +114,18 @@ def admin_protected_route(f):
     return decorator
 
 
-@app.route('/events', methods=['GET'])
-@admin_protected_route
-def get_event():
+def create_event_response(event: Event):
+    return {
+        "event_id": event.event_id,
+        "event_name": event.event_name,
+        "book_id": event.book_id,
+        "user_id": event.user_id,
+        "created": event.created,
+        **json.loads(event.properties),
+    }
+
+
+def get_events_response(request):
     _filter = []
 
     event_name = request.args.get('event_name')
@@ -132,32 +143,21 @@ def get_event():
 
     events = Event.query.filter(*_filter).all()
 
-    _events = [create_event_response(event) for event in events]
-    return {"events": _events}
+    return [create_event_response(event) for event in events]
+
+
+@app.route('/events', methods=['GET'])
+@admin_protected_route
+def get_events():
+    return {"events": get_events_response(request)}
 
 
 @app.route('/events/csv', methods=['GET'])
 @admin_protected_route
-def get_event_csv():
-    _filter = []
+def get_events_csv():
+    events = get_events_response(request)
 
-    event_name = request.args.get('event_name')
-    date_from = request.args.get('date_from')
-    date_until = request.args.get('date_until')
-
-    if event_name:
-        _filter.append(Event.event_name == event_name)
-    if date_from:
-        _filter.append(
-            Event.created > datetime.datetime.fromtimestamp(int(date_from)/1000))
-    if date_until:
-        _filter.append(Event.created < datetime.datetime.fromtimestamp(
-            int(date_until)/1000))
-
-    events = Event.query.filter(*_filter).all()
-    _events = [create_event_response(event) for event in events]
-
-    output = make_response(data_to_csv_str(_events))
+    output = make_response(data_to_csv_str(events))
     output.headers["Content-Disposition"] = "attachment; filename=export.csv"
     output.headers["Content-type"] = "text/csv"
     return output
@@ -197,5 +197,3 @@ def admin_login():
         "email": user.email,
         "user_id": user.user_id,
     }
-
-    return make_response(hashed_pass, 200)

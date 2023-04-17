@@ -60,7 +60,7 @@ class Event(db.Model):
         return Event(
             event_name=content.get("event_name"),
             book_id=content.get("book_id", "noId"),
-            user_id=content.get("user_id", 0),
+            user_id=content.get("user_id"),
             properties=json.dumps(content.get("properties", {})),
         )
 
