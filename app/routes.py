@@ -130,17 +130,6 @@ def admin_protected_route(f):
     return decorator
 
 
-def create_event_response(event: Event):
-    return {
-        "event_id": event.event_id,
-        "event_name": event.event_name,
-        "book_id": event.book_id,
-        "user_id": event.user_id,
-        "created": event.created,
-        **json.loads(event.properties),
-    }
-
-
 def get_events_response(request):
     _filter = []
 
@@ -159,7 +148,7 @@ def get_events_response(request):
 
     events = Event.query.filter(*_filter).all()
 
-    return [create_event_response(event) for event in events]
+    return [event.toDict() for event in events]
 
 
 @app.route('/events', methods=['GET'])

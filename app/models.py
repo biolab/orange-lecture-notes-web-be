@@ -70,6 +70,16 @@ class Event(db.Model):
     created = db.Column(db.DateTime, nullable=False,
                         default=lambda: datetime.datetime.now())
 
+    def toDict(self):
+        return {
+            "event_id": self.event_id,
+            "event_name": self.event_name,
+            "book_id": self.book_id,
+            "user_id": self.user_id,
+            "created": self.created,
+            **json.loads(self.properties),
+        }
+
     @classmethod
     def create_instance(cls, content):
         # event_name, book_id, user_id, *rest = content
