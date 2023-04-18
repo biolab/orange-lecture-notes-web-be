@@ -34,6 +34,48 @@ def data_to_csv_str(data: list):
     return content
 
 
+# ###
+# Authentication decorator
+# ###
+def user_protected_route(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token = request.args.get(
+            'access_token') or request.headers.get('access-token')
+
+        if not token:
+            return make_response("Unauthorized", 401)
+
+        user = User.query.filter_by(access_token=token).first()
+
+        if not user:
+            return make_response("Unauthorized", 401)
+
+        return f(*args, **kwargs)
+
+    return decorator
+
+
+def admin_protected_route(f):
+    @wraps(f)
+    def decorator(*args, **kwargs):
+        token = request.args.get(
+            'access_token') or request.headers.get('access-token')
+
+        if not token:
+            return make_response("Unauthorized", 401)
+
+        user = AdminUser.query.filter_by(access_token=token).first()
+
+        if not user:
+            return make_response("Unauthorized", 401)
+
+        return f(*args, **kwargs)
+
+    return decorator
+# ###
+
+
 @app.route("/user/create", methods=["POST"])
 def user_create():
     content = request.get_json(force=True)
@@ -87,6 +129,7 @@ def user_me():
 
 
 @app.route('/event', methods=['POST'])
+@user_protected_route
 def post_event():
     content = request.get_json(force=True)
 
@@ -108,26 +151,6 @@ def post_event():
     db.session.commit()
 
     return make_response(f"Ok")
-
-
-# Authentication decorator
-def admin_protected_route(f):
-    @wraps(f)
-    def decorator(*args, **kwargs):
-        token = request.args.get(
-            'access_token') or request.headers.get('access-token')
-
-        if not token:  # throw error if no token provided
-            return make_response("Unauthorized", 401)
-
-        user = AdminUser.query.filter_by(access_token=token).first()
-
-        if not user:
-            return make_response("Unauthorized", 401)
-
-        return f(*args, **kwargs)
-
-    return decorator
 
 
 def get_events_response(request):
