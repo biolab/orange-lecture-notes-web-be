@@ -35,7 +35,7 @@ def data_to_csv_str(data: list):
 
 
 @app.route("/user/create", methods=["POST"])
-def user_records():
+def user_create():
     content = request.get_json(force=True)
     params = content["params"]
 
@@ -67,7 +67,23 @@ def user_records():
 
     # Send email with access token
 
-    return make_response(f"User {email} created!")
+    return make_response(f"{url}?access_token={access_token}")
+
+
+@app.route("/user/me", methods=["GET"])
+def user_me():
+    token = request.args.get(
+        'access_token') or request.headers.get('access-token')
+
+    if not token:
+        return make_response("Unauthorized", 401)
+
+    user = User.query.filter_by(access_token=token).first()
+
+    if not user:
+        return make_response("Unauthorized", 401)
+
+    return user.toDict()
 
 
 @app.route('/event', methods=['POST'])
@@ -186,14 +202,7 @@ def admin_login():
     if not user:
         return make_response("Wrong email or password", 401)
 
-    hashed_pass = AdminUser.get_hashed_pass(password)
-
     if not bcrypt.checkpw(password.encode('utf-8'), user.password):
         return make_response("Wrong email or password", 401)
 
-    return {
-        "admin": True,
-        "access_token": user.access_token,
-        "email": user.email,
-        "user_id": user.user_id,
-    }
+    return user.toDict()

@@ -15,6 +15,14 @@ class User(db.Model):
     created = db.Column(db.DateTime, nullable=False,
                         default=lambda: datetime.datetime.now())
 
+    def toDict(self):
+        return {
+            "user_id": self.user_id,
+            "email": self.email,
+            "access_token": self.access_token,
+            "created": self.created,
+        }
+
     def __repr__(self):
         return f"<Users {self.user_id}>"
 
@@ -29,6 +37,15 @@ class AdminUser(db.Model):
     created = db.Column(db.DateTime, nullable=False,
                         default=lambda: datetime.datetime.now())
     password = db.Column(db.String(80), index=False, nullable=False)
+
+    def toDict(self):
+        return {
+            "admin": True,
+            "access_token": self.access_token,
+            "email": self.email,
+            "user_id": self.user_id,
+            "created": self.created,
+        }
 
     @classmethod
     def get_hashed_pass(cls, password):
@@ -80,4 +97,3 @@ class Book(db.Model):
 
     def __repr__(self):
         return f"<Books {self.book_id}>"
-
