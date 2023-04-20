@@ -1,4 +1,3 @@
-"""Application routes."""
 from datetime import datetime as dt
 import datetime
 from functools import wraps
@@ -9,11 +8,11 @@ import io
 import bcrypt
 
 from flask import make_response
-
 from flask import current_app as app
 from flask import make_response, request
+
+from .send_email import send_email, invite_body
 from .models import AdminUser, Book, User, Event, db
-from datetime import date
 
 
 def data_to_csv_str(data: list):
@@ -107,9 +106,11 @@ def user_create():
         db.session.add(new_user)
         db.session.commit()
 
-    # Send email with access token
+    _url = f"{url}?access_token={access_token}"
 
-    return make_response(f"{url}?access_token={access_token}")
+    send_email(email=email, subject="", body=invite_body(_url))
+
+    return make_response(_url)
 
 
 @app.route("/user/me", methods=["GET"])
