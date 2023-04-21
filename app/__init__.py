@@ -13,7 +13,7 @@ def create_app():
     CORS(app)
     app.config.from_object("config.Config")
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + \
-        os.path.join(basedir, 'database.db')
+        os.path.join(basedir, "..", "db", 'database.db')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     db.init_app(app)
