@@ -97,7 +97,7 @@ def user_create():
     if existing_user:
         access_token = existing_user.access_token
     else:
-        access_token = uuid.uuid4().hex,
+        access_token = uuid.uuid4().hex
 
         new_user = User(
             email=email,
