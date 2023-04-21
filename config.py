@@ -12,4 +12,4 @@ class Config:
     ADMIN_USER = environ.get("ADMIN_USER")
     SMTP_HOST = environ.get("SMTP_HOST")
     EMAIL_FROM = environ.get("EMAIL_FROM")
-    EMAIL_FROM_NAME = "Biolab"
+    EMAIL_FROM_NAME = environ.get("EMAIL_FROM_NAME")
