@@ -108,7 +108,7 @@ def user_create():
 
     _url = f"{url}?access_token={access_token}"
 
-    send_email(email=email, subject="", body=invite_body(_url))
+    send_email(to=email, subject="", body=invite_body(_url))
 
     return make_response(_url)
 
