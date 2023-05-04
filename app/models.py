@@ -105,5 +105,13 @@ class Book(db.Model):
     created = db.Column(db.DateTime, nullable=False,
                         default=lambda: datetime.datetime.now())
 
+    def toDict(self):
+        return {
+            "book_id": self.book_id,
+            "book_title": self.book_title,
+            "url": self.url,
+            "created": self.created,
+        }
+
     def __repr__(self):
         return f"<Books {self.book_id}>"

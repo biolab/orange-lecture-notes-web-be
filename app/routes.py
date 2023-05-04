@@ -2,7 +2,6 @@ from datetime import datetime as dt
 import datetime
 from functools import wraps
 import uuid
-import json
 import csv
 import io
 import bcrypt
@@ -152,6 +151,13 @@ def post_event():
     db.session.commit()
 
     return make_response(f"Ok")
+
+
+@app.route('/books', methods=['GET'])
+@admin_protected_route
+def get_books():
+    books = Book.query.all()
+    return {"books": [book.toDict() for book in books]}
 
 
 def get_events_response(request):
