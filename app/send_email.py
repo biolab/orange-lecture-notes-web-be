@@ -7,10 +7,9 @@ from email.mime.text import MIMEText
 from config import Config
 
 
-def invite_body(url):
-    return f"""Helo,
-Here is your <a href='{url}'>link to the book</a>
-"""
+def invite_body(body, url):
+    body = body or "Helo, Here is your <a href='{url}'>link to the book</a>"
+    return body.replace("{url}", url)
 
 
 def send_email(to, subject, body):

@@ -81,6 +81,9 @@ def user_create():
 
     email = params.get('email')
     url = params.get('url')
+    email_content = params.get('emailContent')
+    subject = email_content.get("subject")
+    email_body = email_content.get("body")
 
     if not email:
         return make_response("Email is required!", 400)
@@ -107,7 +110,8 @@ def user_create():
 
     _url = f"{url}?access_token={access_token}"
 
-    send_email(to=email, subject="", body=invite_body(_url))
+    send_email(to=email, subject=subject,
+               body=invite_body(email_body, _url))
 
     return make_response(_url)
 
@@ -203,6 +207,9 @@ def get_events_csv():
 def get_event_types():
     events = Event.query.all()
     return {"events_types": list(set([event.event_name for event in events]))}
+
+#  curl -d '{"params": {"email": "admin@pumice.com", "password": "mitja"}}' -X post http://127.0.0.1:5000/admin/login
+# curl -d '{"params": {"email": "admin@admin.com", "password": "mitjusemdolzen25eur"}}' -X post https://ozip.biolab.si/books-be/admin/login
 
 
 @app.route('/admin/login', methods=['POST'])
