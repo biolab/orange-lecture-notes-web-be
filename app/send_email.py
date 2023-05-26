@@ -16,7 +16,7 @@ def send_email(to, subject, body):
     msg = EmailMessage()
     msg['From'] = formataddr((Config.EMAIL_FROM_NAME, Config.EMAIL_FROM))
     msg['To'] = to
-    msg['Subject'] = subject
+    msg['Subject'] = subject or ""
     msg.set_content(MIMEText(body, 'html'))
 
     with smtplib.SMTP(Config.SMTP_HOST) as s:

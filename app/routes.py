@@ -82,8 +82,13 @@ def user_create():
     email = params.get('email')
     url = params.get('url')
     email_content = params.get('emailContent')
-    subject = email_content.get("subject")
-    email_body = email_content.get("body")
+
+    subject = ""
+    email_body = ""
+
+    if email_content is not None:
+        subject = email_content.get("subject")
+        email_body = email_content.get("body")
 
     if not email:
         return make_response("Email is required!", 400)
