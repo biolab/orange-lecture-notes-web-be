@@ -175,6 +175,7 @@ def get_events_response(request):
     event_name = request.args.get('event_name')
     date_from = request.args.get('date_from')
     date_until = request.args.get('date_until')
+    book_id = request.args.get('book_id')
 
     if event_name:
         _filter.append(Event.event_name == event_name)
@@ -184,6 +185,8 @@ def get_events_response(request):
     if date_until:
         _filter.append(Event.created < datetime.datetime.fromtimestamp(
             int(date_until)/1000))
+    if book_id:
+        _filter.append(Event.book_id == book_id)
 
     events = Event.query.filter(*_filter).all()
 
@@ -212,9 +215,6 @@ def get_events_csv():
 def get_event_types():
     events = Event.query.all()
     return {"events_types": list(set([event.event_name for event in events]))}
-
-#  curl -d '{"params": {"email": "admin@pumice.com", "password": "mitja"}}' -X post http://127.0.0.1:5000/admin/login
-# curl -d '{"params": {"email": "admin@admin.com", "password": "mitjusemdolzen25eur"}}' -X post https://ozip.biolab.si/books-be/admin/login
 
 
 @app.route('/admin/login', methods=['POST'])
