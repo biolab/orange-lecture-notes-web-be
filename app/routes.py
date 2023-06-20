@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 import datetime
 from functools import wraps
+import json
 import uuid
 import csv
 import io
@@ -11,7 +12,7 @@ from flask import current_app as app
 from flask import make_response, request
 
 from .send_email import send_email, invite_body
-from .models import AdminUser, Book, User, Event, db
+from .models import AdminUser, Book, QuizState, User, Event, db
 
 
 def data_to_csv_str(data: list):
@@ -49,7 +50,7 @@ def user_protected_route(f):
         if not user:
             return make_response("Unauthorized", 401)
 
-        return f(*args, **kwargs)
+        return f(user, *args, **kwargs)
 
     return decorator
 
@@ -139,7 +140,7 @@ def user_me():
 
 @app.route('/event', methods=['POST'])
 @user_protected_route
-def post_event():
+def post_event(user: User):
     content = request.get_json(force=True)
 
     book_id = content["book"]["book_id"]
@@ -160,6 +161,51 @@ def post_event():
     db.session.commit()
 
     return make_response(f"Ok")
+
+
+@app.route('/state', methods=['POST'])
+@user_protected_route
+def post_state(user: User):
+    state = request.get_json(force=True)
+
+    if state is None:
+        make_response("missing state", 400)
+    
+    book_id = state.get("book_id")
+
+    if book_id is None:
+        make_response("book_id missing in state", 400)
+
+    state_id = QuizState.get_state_id(user.user_id, book_id)
+
+    db_state = QuizState.query.filter_by(
+        state_id=state_id
+    ).first()
+
+    if db_state:
+        db_state.state = json.dumps(state)
+    else:
+        new_state = QuizState.create_instance(state_id, state)
+        db.session.add(new_state)
+
+    db.session.commit()
+
+    return make_response(state)
+
+
+@app.route('/state', methods=['GET'])
+@user_protected_route
+def get_state(user: User):
+    book_id = request.args.get("book_id")
+
+    state = QuizState.query.filter_by(
+        state_id=QuizState.get_state_id(user.user_id, book_id)
+    ).first()
+
+    if state:
+        return state.toDict()
+
+    return make_response("No found", 404)
 
 
 @app.route('/books', methods=['GET'])

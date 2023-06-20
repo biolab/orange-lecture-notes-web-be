@@ -115,3 +115,37 @@ class Book(db.Model):
 
     def __repr__(self):
         return f"<Books {self.book_id}>"
+
+
+class QuizState(db.Model):
+    """Data model for quiz_state."""
+
+    __tablename__ = "quiz_state"
+    state_id = db.Column(db.String(80), primary_key=True)
+    created = db.Column(db.DateTime, nullable=False,
+                        default=lambda: datetime.datetime.now())
+    state = db.Column(db.String(), index=False, nullable=False)
+
+    @classmethod
+    def get_state_id(cls, user_id, state_id):
+        return f"user:{user_id}::book_id:{state_id}"
+
+    @classmethod
+    def create_instance(cls, state_id, state):
+        return QuizState(
+            state_id=state_id,
+            state=json.dumps(state),
+        )
+
+    def toDict(self):
+        return {
+            **json.loads(self.state),
+        }
+
+    def toDict(self):
+        return {
+            **json.loads(self.state),
+        }
+
+    def __repr__(self):
+        return f"<QuizState {self.state_id}>"
