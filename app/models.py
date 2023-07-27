@@ -122,6 +122,7 @@ class QuizState(db.Model):
 
     __tablename__ = "quiz_state"
     state_id = db.Column(db.String(80), primary_key=True)
+    user_id = db.Column(db.Integer, index=True, unique=False, nullable=False)
     created = db.Column(db.DateTime, nullable=False,
                         default=lambda: datetime.datetime.now())
     state = db.Column(db.String(), index=False, nullable=False)
@@ -131,8 +132,9 @@ class QuizState(db.Model):
         return f"user:{user_id}::book_id:{state_id}"
 
     @classmethod
-    def create_instance(cls, state_id, state):
+    def create_instance(cls, user_id, state_id, state):
         return QuizState(
+            user_id=user_id,
             state_id=state_id,
             state=json.dumps(state),
         )

@@ -170,7 +170,7 @@ def post_state(user: User):
 
     if state is None:
         make_response("missing state", 400)
-    
+
     book_id = state.get("book_id")
 
     if book_id is None:
@@ -185,7 +185,8 @@ def post_state(user: User):
     if db_state:
         db_state.state = json.dumps(state)
     else:
-        new_state = QuizState.create_instance(state_id, state)
+        new_state = QuizState.create_instance(
+            state_id=state_id, user_id=user.user_id, state=state)
         db.session.add(new_state)
 
     db.session.commit()
@@ -206,6 +207,21 @@ def get_state(user: User):
         return state.toDict()
 
     return make_response("No found", 404)
+
+
+@app.route('/user/delete-user-data', methods=['DELETE'])
+@user_protected_route
+def delete_user_data(user: User):
+    QuizState.query.filter_by(
+        user_id=user.user_id).delete()
+    Event.query.filter_by(
+        user_id=user.user_id).delete()
+    User.query.filter_by(
+        user_id=user.user_id).delete()
+
+    db.session.commit()
+
+    return make_response("Ok", 200)
 
 
 @app.route('/books', methods=['GET'])
