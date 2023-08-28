@@ -216,8 +216,9 @@ def delete_user_data(user: User):
         user_id=user.user_id).delete()
     Event.query.filter_by(
         user_id=user.user_id).delete()
-    User.query.filter_by(
-        user_id=user.user_id).delete()
+
+    user.access_token = ""
+    user.email = ""
 
     db.session.commit()
 
