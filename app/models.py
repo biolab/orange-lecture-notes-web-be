@@ -14,6 +14,10 @@ class User(db.Model):
     access_token = db.Column(db.String(80), index=True, nullable=False)
     created = db.Column(db.DateTime, nullable=False,
                         default=lambda: datetime.datetime.now())
+    deleted = db.Column(db.Boolean, nullable=False,
+                        unique=False, default=False)
+    deleted_count = db.Column(db.Integer, nullable=False,
+                              unique=False, default=0)
 
     def toDict(self):
         return {

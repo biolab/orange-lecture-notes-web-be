@@ -43,11 +43,11 @@ def user_protected_route(f):
             'access_token') or request.headers.get('access-token')
 
         if not token:
-            return make_response("Unauthorized", 401)
+            return make_response("Unauthorized. Missing access-token.", 401)
 
         user = User.query.filter_by(access_token=token).first()
 
-        if not user:
+        if not user or user.deleted:
             return make_response("Unauthorized", 401)
 
         return f(user, *args, **kwargs)
@@ -62,7 +62,7 @@ def admin_protected_route(f):
             'access_token') or request.headers.get('access-token')
 
         if not token:
-            return make_response("Unauthorized", 401)
+            return make_response("Unauthorized. Missing access-token.", 401)
 
         user = AdminUser.query.filter_by(access_token=token).first()
 
@@ -104,6 +104,7 @@ def user_create():
 
     if existing_user:
         access_token = existing_user.access_token
+        existing_user.deleted = False
     else:
         access_token = uuid.uuid4().hex
 
@@ -112,7 +113,8 @@ def user_create():
             access_token=access_token,
         )
         db.session.add(new_user)
-        db.session.commit()
+
+    db.session.commit()
 
     _url = f"{url}?access_token={access_token}"
 
@@ -123,18 +125,8 @@ def user_create():
 
 
 @app.route("/user/me", methods=["GET"])
-def user_me():
-    token = request.args.get(
-        'access_token') or request.headers.get('access-token')
-
-    if not token:
-        return make_response("Unauthorized", 401)
-
-    user = User.query.filter_by(access_token=token).first()
-
-    if not user:
-        return make_response("Unauthorized", 401)
-
+@user_protected_route
+def user_me(user: User):
     return user.toDict()
 
 
@@ -217,8 +209,9 @@ def delete_user_data(user: User):
     Event.query.filter_by(
         user_id=user.user_id).delete()
 
-    user.access_token = ""
-    user.email = ""
+    user.deleted = True
+    user.access_token = uuid.uuid4().hex
+    user.deleted_count = user.deleted_count + 1
 
     db.session.commit()
 
