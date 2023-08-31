@@ -86,8 +86,6 @@ class Event(db.Model):
 
     @classmethod
     def create_instance(cls, content):
-        # event_name, book_id, user_id, *rest = content
-
         return Event(
             event_name=content.get("event_name"),
             book_id=content.get("book_id", "noId"),

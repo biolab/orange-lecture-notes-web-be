@@ -152,6 +152,15 @@ def post_event(user: User):
     db.session.add(new_event)
     db.session.commit()
 
+    submission_email = content.get("submission_email")
+
+    if submission_email is not None:
+        subject = submission_email.get("subject")
+        email_body = submission_email.get("body")
+
+        if subject and email_body:
+            send_email(to=user.email, subject=subject, body=email_body)
+
     return make_response(f"Ok")
 
 
