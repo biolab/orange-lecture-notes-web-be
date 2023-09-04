@@ -12,7 +12,7 @@ from flask import current_app as app
 from flask import make_response, request
 
 from .send_email import send_email, invite_body
-from .models import AdminUser, Book, QuizState, User, Event, db
+from .models import AdminUser, AnonymousEvent, Book, QuizState, User, Event, db
 
 
 def data_to_csv_str(data: list):
@@ -160,6 +160,30 @@ def post_event(user: User):
 
         if subject and email_body:
             send_email(to=user.email, subject=subject, body=email_body)
+
+    return make_response(f"Ok")
+
+
+@app.route('/anonymous-event', methods=['POST'])
+def post_anonymous_event():
+    content = request.get_json(force=True)
+
+    book_id = content["book"]["book_id"]
+
+    if book_id:
+        book = Book.query.filter(Book.book_id == book_id).first()
+        if not book:
+            new_book = Book(
+                book_id=book_id,
+                book_title=content["book"]["book_title"],
+                url=content["book"]["url"]
+            )
+            db.session.add(new_book)
+
+    new_event = AnonymousEvent.create_instance(content)
+
+    db.session.add(new_event)
+    db.session.commit()
 
     return make_response(f"Ok")
 

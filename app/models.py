@@ -97,6 +97,40 @@ class Event(db.Model):
         return f"<Events {self.event_name}>"
 
 
+class AnonymousEvent(db.Model):
+    """Data model for events."""
+
+    __tablename__ = "events"
+    event_id = db.Column(db.Integer, primary_key=True)
+    event_name = db.Column(db.String(80), index=True,
+                           unique=False, nullable=False)
+    book_id = db.Column(db.String(80), index=True,
+                        unique=False, nullable=False)
+    properties = db.Column(db.String(), index=False, nullable=False)
+    created = db.Column(db.DateTime, nullable=False,
+                        default=lambda: datetime.datetime.now())
+
+    def toDict(self):
+        return {
+            "event_id": self.event_id,
+            "event_name": self.event_name,
+            "book_id": self.book_id,
+            "created": self.created,
+            **json.loads(self.properties),
+        }
+
+    @classmethod
+    def create_instance(cls, content):
+        return Event(
+            event_name=content.get("event_name"),
+            book_id=content.get("book_id", "noId"),
+            properties=json.dumps(content.get("properties", {})),
+        )
+
+    def __repr__(self):
+        return f"<AnonymousEvents {self.event_name}>"
+
+
 class Book(db.Model):
     """Data model for books."""
 
