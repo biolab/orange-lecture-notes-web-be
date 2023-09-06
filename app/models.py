@@ -100,7 +100,7 @@ class Event(db.Model):
 class AnonymousEvent(db.Model):
     """Data model for events."""
 
-    __tablename__ = "events"
+    __tablename__ = "anonymous_events"
     event_id = db.Column(db.Integer, primary_key=True)
     event_name = db.Column(db.String(80), index=True,
                            unique=False, nullable=False)
