@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin dashboard: Survival analysis</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <style>
+        .compact-table {
+            font-size: 0.8rem;
+        }
+        .compact-table th, 
+        .compact-table td {
+            padding: 4px 8px;
+        }
+    </style>
+
+    
+</head>
+<body>
+
+    <div class="container mt-5">
+        <h1>Admin dashboard: Survival Analysis Tutorial</h1>
+        <hr>
+
+        <div class="row  justify-content-md-right">
+            <div class="col-lg-9">
+            <strong>Summary:</strong>
+
+                <ul>
+                    <li>Users - {{ summary.user_count }} registered and  {{ summary.deleted_count }} deleted</li>
+                    <li>Quiz submissions - {{ summary.submission_count }}</li>
+                    <li>Pending submission - {{ summary.pending_count }}</li>
+                </ul>
+                
+            </div>
+            <div class="col-lg-3">
+                <strong>Legend:</strong>
+                <ul>
+                    <li><i class="fas fa-check"></i> - Submitted</li>
+                    <li><i class="fas fa-hourglass-half"></i> - Pending submission</li>
+                    <li><i class="fas fa-times"></i> - Deleted User</li>
+                </ul>
+            </div>
+          </div>
+
+            
+
+        <table class="table table-bordered compact-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Chapter 1</th>
+                    <th>Chapter 2</th>
+                    <th>Chapter 3</th>
+                    <th>Chapter 4</th>
+                    <th>Pre-test questionnaire</th>
+                    <th>Post-test questionnaire</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% macro table_cell(answered, total, active) %}
+                <td class="text-center 
+                    {% if answered is defined and answered == total %}table-success
+                    {% elif answered is defined and answered != 0 or active %}table-warning{% endif %}
+                ">
+                    {% if answered is defined and answered != 0 or active %}{{ answered ~ " / " ~ total }}{% endif %}
+                </td>
+                {% endmacro %}
+
+                {% for row in data %}
+                <tr>
+                    <td class="text-center">{{ row['user_id'] }}</td>
+                    <td class="text-center">{{ row['email'] }}</td>
+                
+                    {{ table_cell(row['chapter_1'], row['chapter_1_total'], row['chapter_1_active']) }}
+                    {{ table_cell(row['chapter_2'], row['chapter_2_total'], row['chapter_2_active']) }}
+                    {{ table_cell(row['chapter_3'], row['chapter_3_total'], row['chapter_3_active']) }}
+                    {{ table_cell(row['chapter_4'], row['chapter_4_total'], row['chapter_4_active']) }}
+                    {{ table_cell(row['pre_test'], row['pre_test_total'], False) }}
+                    {{ table_cell(row['post_test'], row['post_test_total'], False) }}
+                
+            
+                    <!-- <td class="text-center">{{ '✔️' if row['isQuizComplete'] else '❌' }}</td> -->
+                    <td class="text-center">
+                        {% if row['is_deleted'] %}
+                            <i class="fas fa-times"></i>
+                        {% elif row['isQuizComplete'] %}
+                            <i class="fas fa-check"></i>
+                        {% else %}
+                            <i class="fas fa-hourglass-half"></i>
+                        {% endif %}
+                    </td>
+                    
+
+
+                </tr>
+                {% endfor %}
+            </tbody>
+            
+        </table>
+    </div>
+</body>
+
+<!-- <script>
+    $(document).ready(function() {
+        $('.table').DataTable();
+    });
+</script> -->
+</html>
