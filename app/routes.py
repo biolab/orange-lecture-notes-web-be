@@ -326,3 +326,53 @@ def admin_login():
         return make_response("Wrong email or password", 401)
 
     return user.toDict()
+
+
+
+# ###
+# Survival analysis dashboard
+# ###
+
+
+def parse_user_state(state: dict):
+
+    def get_num_answers(chapter_qeustions):
+        return len([question for question in chapter_qeustions if 'answers' in question])
+
+    response_status = {}
+    for indx, chapter in enumerate(['pre_test', 'chapter_1', 'chapter_2', 'chapter_3', 'chapter_4', 'post_test']):
+        questions_by_chapter = [q for q in state['questions'] if q['chapterIndex'] == indx]
+        response_status[chapter] = get_num_answers(questions_by_chapter)
+        response_status[chapter + '_total'] = len(questions_by_chapter)
+        response_status[chapter + '_active'] = indx in state['activeChapters']
+
+    response_status['isQuizComplete'] = state.get('isQuizComplete', False)
+    return response_status
+
+
+@app.route('/admin/dashboard/survival-analysis', methods=['GET'])
+@admin_protected_route
+def survival_analysis_dashboard():
+    """ this code is a mess and should be refactored at some point """
+
+    users = User.query.all()
+    user_emails = [user.email for user in users]
+    user_ids = [user.user_id for user in users]
+    user_deleted = [user.deleted for user in users]
+    states_by_user_id = {state.user_id: json.loads(state.state) for state in QuizState().query.filter(QuizState.user_id.in_(user_ids)).all()}
+
+
+    data = []
+    for email, uid, is_deleted in zip(user_emails, user_ids, user_deleted):
+        row = {'email': email, 'user_id': uid, 'is_deleted': is_deleted}
+        if uid in states_by_user_id:
+            row.update(parse_user_state(states_by_user_id[uid]))
+        data.append(row)
+
+    summary = {'user_count': len(data), 
+               'deleted_count': len([user for user in data if user['is_deleted']]),
+               'submission_count': len([user for user in data if user.get('isQuizComplete', False)]),
+               'pending_count': len([user for user in data if not user.get('isQuizComplete', False) and not user['is_deleted']]),
+               }
+
+    return render_template('admin_dashboard.html', data=data, summary=summary)
