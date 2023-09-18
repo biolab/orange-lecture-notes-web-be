@@ -10,6 +10,7 @@ import bcrypt
 from flask import make_response
 from flask import current_app as app
 from flask import make_response, request
+from flask import render_template
 
 from .send_email import send_email, invite_body
 from .models import AdminUser, AnonymousEvent, Book, QuizState, User, Event, db
