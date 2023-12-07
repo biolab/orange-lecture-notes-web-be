@@ -377,3 +377,9 @@ def survival_analysis_dashboard():
                }
 
     return render_template('admin_dashboard.html', data=data, summary=summary)
+
+
+@app.route("/healthcheck", methods=["GET"])
+@user_protected_route
+def user_me():
+    return "OK"
