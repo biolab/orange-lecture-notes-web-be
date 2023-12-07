@@ -381,5 +381,5 @@ def survival_analysis_dashboard():
 
 @app.route("/healthcheck", methods=["GET"])
 @user_protected_route
-def user_me():
+def healthcheck():
     return "OK"
