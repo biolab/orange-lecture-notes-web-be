@@ -350,6 +350,12 @@ def parse_user_state(state: dict):
     response_status['isQuizComplete'] = state.get('isQuizComplete', False)
     return response_status
 
+def parse_user_id(state_id: str):
+        user_id, book_id = state_id.split('::')
+        user_id = int(user_id.split(':')[-1])
+        book_id = book_id.split(':')[-1]
+        return user_id, book_id
+
 
 @app.route('/admin/dashboard/survival-analysis', methods=['GET'])
 @admin_protected_route
@@ -357,26 +363,32 @@ def survival_analysis_dashboard():
     """ this code is a mess and should be refactored at some point """
 
     users = User.query.all()
-    user_emails = [user.email for user in users]
-    user_ids = [user.user_id for user in users]
-    user_deleted = [user.deleted for user in users]
-    states_by_user_id = {state.user_id: json.loads(state.state) for state in QuizState().query.filter(QuizState.user_id.in_(user_ids)).all()}
+    user_id_to_mail = {user.user_id: user.email for user in users}
 
+    books = Book.query.all()
+    books = [{'book_id':book.book_id, 'book_title': book.book_title} for book in books if 'localhost' not in book.url]
+
+    events_completed = Event.query.filter(Event.event_name == 'QUIZ_COMPLETED').all()
+    events_completed = {(event.user_id, event.book_id): event.created.strftime("%B %d, %Y") for event in events_completed}
+
+    
+    book_states = {state.state_id: json.loads(state.state) for state in QuizState().query.filter(QuizState.user_id.in_(user_id_to_mail.keys())).all()}
 
     data = []
-    for email, uid, is_deleted in zip(user_emails, user_ids, user_deleted):
-        row = {'email': email, 'user_id': uid, 'is_deleted': is_deleted}
-        if uid in states_by_user_id:
-            row.update(parse_user_state(states_by_user_id[uid]))
+    for state_id, state in book_states.items():
+        user_id, book_id = parse_user_id(state_id)
+
+        row = {'user_id': user_id, 'book_id': book_id, 'email': user_id_to_mail[user_id], 'completed': events_completed.get((user_id, book_id), '')}
+        row.update(parse_user_state(state))
         data.append(row)
 
-    summary = {'user_count': len(data), 
-               'deleted_count': len([user for user in data if user['is_deleted']]),
+
+    summary = {'user_count': len(users), 
                'submission_count': len([user for user in data if user.get('isQuizComplete', False)]),
-               'pending_count': len([user for user in data if not user.get('isQuizComplete', False) and not user['is_deleted']]),
+               'pending_count': len([user for user in data if not user.get('isQuizComplete', False)])
                }
 
-    return render_template('admin_dashboard.html', data=data, summary=summary)
+    return render_template('admin_dashboard.html', data=data, summary=summary, books=books)
 
 
 @app.route("/healthcheck", methods=["GET"])

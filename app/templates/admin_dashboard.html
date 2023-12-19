@@ -8,9 +8,12 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/jquery.dataTables.min.css">
+
+
     <style>
         .compact-table {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
         }
         .compact-table th, 
         .compact-table td {
@@ -22,36 +25,50 @@
 </head>
 <body>
 
-    <div class="container mt-5">
+    <div class="container-fluid col-11">
         <h1>Admin dashboard: Survival Analysis Tutorial</h1>
         <hr>
 
-        <div class="row  justify-content-md-right">
-            <div class="col-lg-9">
+        <div class="row justify-content-md-right" >
+            <div class="col-md-9">
             <strong>Summary:</strong>
 
                 <ul>
-                    <li>Users - {{ summary.user_count }} registered and  {{ summary.deleted_count }} deleted</li>
+                    <li>Registered users - {{ summary.user_count }}</li>
                     <li>Quiz submissions - {{ summary.submission_count }}</li>
                     <li>Pending submission - {{ summary.pending_count }}</li>
                 </ul>
                 
             </div>
-            <div class="col-lg-3">
+            <div class="col-md-3">
                 <strong>Legend:</strong>
                 <ul>
                     <li><i class="fas fa-check"></i> - Submitted</li>
                     <li><i class="fas fa-hourglass-half"></i> - Pending submission</li>
-                    <li><i class="fas fa-times"></i> - Deleted User</li>
                 </ul>
             </div>
           </div>
 
             
-
-        <table class="table table-bordered compact-table">
+          <table class="inputs">
+            <tbody>
+                <tr>
+                    <td>Book Title:</td>
+                    <td>
+                        <select id="book_id" name="book_id">
+                            {% for book in books %}
+                                <option value="{{ book.book_id }}">{{ book.book_title }}</option>
+                            {% endfor %}
+                            <!-- <option value="b8c6c06e-dee4-5eb6-af3e-6692cf712ee2">Survival Analysis</option>
+                            <option value="9f7b5686-3d1c-5b8e-87c0-17f4f7a1d676">Survival Analysis (Public)</option> -->
+                        </select> 
+                    </td>
+                </tr>
+        </tbody></table>
+        <table id="book_state" class="table table-bordered compact-table">
             <thead>
                 <tr>
+                    <th>Book ID</th>
                     <th>User ID</th>
                     <th>Email</th>
                     <th>Chapter 1</th>
@@ -61,6 +78,7 @@
                     <th>Pre-test questionnaire</th>
                     <th>Post-test questionnaire</th>
                     <th>Status</th>
+                    <th>Completed</th>
                 </tr>
             </thead>
             <tbody>
@@ -75,6 +93,7 @@
 
                 {% for row in data %}
                 <tr>
+                    <td class="text-center">{{ row['book_id'] }}</td>
                     <td class="text-center">{{ row['user_id'] }}</td>
                     <td class="text-center">{{ row['email'] }}</td>
                 
@@ -84,32 +103,54 @@
                     {{ table_cell(row['chapter_4'], row['chapter_4_total'], row['chapter_4_active']) }}
                     {{ table_cell(row['pre_test'], row['pre_test_total'], False) }}
                     {{ table_cell(row['post_test'], row['post_test_total'], False) }}
-                
-            
-                    <!-- <td class="text-center">{{ '✔️' if row['isQuizComplete'] else '❌' }}</td> -->
+
                     <td class="text-center">
-                        {% if row['is_deleted'] %}
-                            <i class="fas fa-times"></i>
-                        {% elif row['isQuizComplete'] %}
+   
+                        {% if row['isQuizComplete'] %}
                             <i class="fas fa-check"></i>
                         {% else %}
                             <i class="fas fa-hourglass-half"></i>
                         {% endif %}
                     </td>
-                    
 
-
+                    <td class="text-center">{{ row['completed'] }}</td>
                 </tr>
                 {% endfor %}
+                
             </tbody>
             
         </table>
     </div>
 </body>
 
-<!-- <script>
+<script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+<script>
     $(document).ready(function() {
-        $('.table').DataTable();
+        $('.table').DataTable(
+            { 
+                "paging": false,
+                'columnDefs' : [{'visible': false, 'targets': [0]}]
+            });
+        
+        const table = $('#book_state').DataTable();
+        $.fn.dataTable.ext.search.push(function (settings, data, dataIndex) {
+            var book_id = $('#book_id').val();
+
+            var book_id_col = data[0];
+            if (book_id == book_id_col) {
+                return true;
+            }
+            return false;
+        });
+
+        $('#book_id').on('change', function () {
+            table.draw();
+        });
+
+        // Manually trigger the draw method on page load
+        table.draw();
     });
-</script> -->
+</script>
+
 </html>
