@@ -366,10 +366,11 @@ def survival_analysis_dashboard():
     user_id_to_mail = {user.user_id: user.email for user in users}
 
     books = Book.query.all()
-    books = [{'book_id':book.book_id, 'book_title': book.book_title} for book in books if 'localhost' not in book.url]
+    books = [{'book_id':book.book_id, 'book_title': book.book_title} for book in books if 'localhost' not in book.url and 'survival' in book.url]
+    books_ids = {book['book_id'] for book in books}
 
     events_completed = Event.query.filter(Event.event_name == 'QUIZ_COMPLETED').all()
-    events_completed = {(event.user_id, event.book_id): event.created.strftime("%B %d, %Y") for event in events_completed}
+    events_completed = {(event.user_id, event.book_id): event.created.strftime("%B %d, %Y") for event in events_completed if event.book_id in books_ids}
 
     
     book_states = {state.state_id: json.loads(state.state) for state in QuizState().query.filter(QuizState.user_id.in_(user_id_to_mail.keys())).all()}
@@ -377,11 +378,12 @@ def survival_analysis_dashboard():
     data = []
     for state_id, state in book_states.items():
         user_id, book_id = parse_user_id(state_id)
+        if book_id not in books_ids:
+            continue
 
         row = {'user_id': user_id, 'book_id': book_id, 'email': user_id_to_mail[user_id], 'completed': events_completed.get((user_id, book_id), '')}
         row.update(parse_user_state(state))
         data.append(row)
-
 
     summary = {'user_count': len(users), 
                'submission_count': len([user for user in data if user.get('isQuizComplete', False)]),
