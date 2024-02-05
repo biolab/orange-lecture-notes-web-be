@@ -13,3 +13,4 @@ class Config:
     SMTP_HOST = environ.get("SMTP_HOST")
     EMAIL_FROM = environ.get("EMAIL_FROM")
     EMAIL_FROM_NAME = environ.get("EMAIL_FROM_NAME")
+    OPENAI_API_KEY = environ.get("OPENAI_API_KEY")
