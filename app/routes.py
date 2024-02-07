@@ -18,6 +18,7 @@ from openai import OpenAI
 
 from .send_email import send_email, invite_body
 from .models import AdminUser, AnonymousEvent, Book, QuizState, User, Event, db
+from .analytics import parse_events
 
 from config import Config
 
@@ -265,6 +266,13 @@ def get_books():
     return {"books": [book.toDict() for book in books]}
 
 
+@app.route('/books/<book_id>/submissions', methods=['GET'])
+@admin_protected_route
+def get_book_submissions(book_id):
+    events = Event.query.filter_by(book_id=book_id, event_name='QUIZ_COMPLETED').all()
+    return {"submissions": [parse_events(event.toDict()) for event in events]}
+
+
 def get_events_response(request):
     _filter = []
 
@@ -397,6 +405,8 @@ def survival_analysis_dashboard():
                }
 
     return render_template('admin_dashboard.html', data=data, summary=summary, books=books)
+
+####
 
 
 @app.route("/healthcheck", methods=["GET"])
