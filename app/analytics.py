@@ -12,6 +12,8 @@ def __get_latest_answer(answers: list) -> dict:
 def __parse_question(question: dict):
     latest_answer = __get_latest_answer(question.get('answers', []))
     return {'question': question['question'],
+            'question_id': question['question_id'].split('__')[0],
+            'chapter': question['chapterIndex'],
             'answer': latest_answer.get('answer'),
             'points': latest_answer.get('points'),
             'trial': latest_answer.get('trial')}
