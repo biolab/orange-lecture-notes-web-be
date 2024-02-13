@@ -272,6 +272,13 @@ def get_book_submissions(book_id):
     events = Event.query.filter_by(book_id=book_id, event_name='QUIZ_COMPLETED').all()
     return {"submissions": [parse_events(event.toDict()) for event in events]}
 
+@app.route('/books/<book_id>/users', methods=['GET'])
+@admin_protected_route
+def get_users_by_bookid(book_id):
+    events = Event.query.filter_by(book_id=book_id, event_name='QUIZ_COMPLETED').all()
+    users_in_book = User.query.filter(User.user_id.in_({event.user_id for event in events})).all()
+    return {"users": [{'id': user.user_id, 'email': user.email, 'created': user.created} for user in users_in_book]}
+
 
 def get_events_response(request):
     _filter = []
