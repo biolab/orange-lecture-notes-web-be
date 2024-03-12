@@ -121,7 +121,7 @@ class AnonymousEvent(db.Model):
 
     @classmethod
     def create_instance(cls, content):
-        return Event(
+        return AnonymousEvent(
             event_name=content.get("event_name"),
             book_id=content.get("book_id", "noId"),
             properties=json.dumps(content.get("properties", {})),
