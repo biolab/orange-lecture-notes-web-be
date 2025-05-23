@@ -25,3 +25,7 @@ def parse_events(event: dict):
         "submission_date": event['created'],
         "submitted_data": [__parse_question(question) for question in event['questions']]
     }
+
+
+def parse_state(state: dict):
+    return [__parse_question(question) for question in state['questions']]

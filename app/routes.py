@@ -18,7 +18,7 @@ from openai import OpenAI
 
 from .send_email import send_email, invite_body
 from .models import AdminUser, AnonymousEvent, Book, QuizState, User, Event, db
-from .analytics import parse_events
+from .analytics import parse_events, parse_state
 
 from config import Config
 
@@ -271,6 +271,13 @@ def get_books():
 def get_book_submissions(book_id):
     events = Event.query.filter_by(book_id=book_id, event_name='QUIZ_COMPLETED').all()
     return {"submissions": [parse_events(event.toDict()) for event in events]}
+
+@app.route('/books/<book_id>/quiz_states', methods=['GET'])
+@admin_protected_route
+def get_book_quiz_states(book_id):
+    quiz_states = QuizState.query.filter(QuizState.state_id.like(f"%::book_id:{book_id}")).all()
+    return {"submissions": [{'user_id': state.user_id, 'submitted_data': parse_state(state.toDict())} 
+                             for state in quiz_states]}
 
 @app.route('/books/<book_id>/users', methods=['GET'])
 @admin_protected_route
