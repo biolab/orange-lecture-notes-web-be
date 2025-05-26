@@ -287,6 +287,13 @@ def get_users_by_bookid(book_id):
     return {"users": [{'id': user.user_id, 'email': user.email, 'created': user.created} for user in users_in_book]}
 
 
+@app.route('/books/<book_id>/anon_submissions', methods=['GET'])
+@admin_protected_route
+def get_book_anon_submissions(book_id):
+    events = AnonymousEvent.query.filter_by(book_id=book_id, event_name='ANSWER_QUIZ').all()
+    return {"submissions": [event.toDict() for event in events]}
+
+
 def get_events_response(request):
     _filter = []
 
