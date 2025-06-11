@@ -9,14 +9,16 @@ def __get_latest_answer(answers: list) -> dict:
         answer = {}
     return answer
 
+
 def __parse_question(question: dict):
     latest_answer = __get_latest_answer(question.get('answers', []))
     return {'question': question['question'],
-            'question_id': question['question_id'].split('__')[0],
+            'question_id': question['question_id'],
             'chapter': question['chapterIndex'],
             'answer': latest_answer.get('answer'),
             'points': latest_answer.get('points'),
             'trial': latest_answer.get('trial')}
+
 
 def parse_events(event: dict):
     return {
